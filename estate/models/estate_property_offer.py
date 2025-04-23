@@ -1,5 +1,5 @@
 from datetime import timedelta
-from odoo import api, fields, models
+from odoo import api, exceptions, fields, models
 
 class EstatePropertyTag(models.Model):
     _name = 'estate_property_offer'
@@ -31,3 +31,28 @@ class EstatePropertyTag(models.Model):
         for record in self:
             difference = record.date_deadline - record.create_date.date()
             record.validity = difference.days
+
+    def action_accept(self):
+        for record in self:
+            property = record.property_id
+
+            for offer_id in property.offer_ids:
+                if offer_id.id != record.id and offer_id.status == 'accepted':
+                    raise exceptions.UserError('Cannot accept two different offers!')
+
+            property.selling_price = record.price
+            property.partner_id = record.partner_id
+            record.status = 'accepted'
+
+        return True
+    
+    def action_refuse(self):
+        for record in self:
+            property = record.property_id
+
+            if record.status == 'accepted':
+                property.selling_price = None
+                property.partner_id = None
+                record.status = 'refused'
+
+        return True
