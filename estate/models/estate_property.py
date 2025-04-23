@@ -7,6 +7,8 @@ class EstateProperty(models.Model):
 
     name = fields.Char(string='Title', required=True)
     description = fields.Text()
+    property_type_id = fields.Many2one("estate_property_type", string="Property Type")
+    property_tag_ids = fields.Many2many("estate_property_tag", string="Tags")
     postcode = fields.Char()
     date_availability = fields.Date(string='Available From',
         copy=False, default=lambda self: fields.Date.today() + timedelta(days=90))
@@ -38,4 +40,7 @@ class EstateProperty(models.Model):
             ('cancelled', 'Cancelled')
         ]
     )
+    user_id = fields.Many2one('res.users', string='Salesman', default=lambda self: self.env.user)
+    partner_id = fields.Many2one('res.partner', string='Buyer', copy=False)
+    offer_ids = fields.One2many('estate_property_offer', 'property_id', string='Offers')
     active = fields.Boolean(default=True)
