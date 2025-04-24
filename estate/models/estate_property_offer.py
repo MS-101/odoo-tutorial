@@ -1,7 +1,7 @@
 from datetime import timedelta
 from odoo import api, exceptions, fields, models
 
-class EstatePropertyTag(models.Model):
+class EstatePropertyOffer(models.Model):
     _name = 'estate_property_offer'
     _description = 'Buyer bids for our real estate properties.'
     _order = 'price desc'
@@ -17,6 +17,7 @@ class EstatePropertyTag(models.Model):
     property_id = fields.Many2one('estate_property', string='Property', required=True)
     validity = fields.Integer(string='Validity (days)', default=7, inverse='_inverse_validity')
     date_deadline = fields.Date(string='Deadline', compute='_compute_date_deadline', inverse='_inverse_date_deadline')
+    property_type_id = fields.Many2one(related='property_id.property_type_id', store=True)
 
     def _inverse_validity(self):
         for record in self:
