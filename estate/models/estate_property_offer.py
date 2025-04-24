@@ -4,6 +4,7 @@ from odoo import api, exceptions, fields, models
 class EstatePropertyTag(models.Model):
     _name = 'estate_property_offer'
     _description = 'Buyer bids for our real estate properties.'
+    _order = 'price desc'
 
     price = fields.Float()
     status = fields.Selection(copy=False,
@@ -29,30 +30,27 @@ class EstatePropertyTag(models.Model):
 
     def _inverse_date_deadline(self):
         for record in self:
-            difference = record.date_deadline - record.create_date.date()
-            record.validity = difference.days
+            if record.create_date and record.date_deadline:
+                difference = record.date_deadline - record.create_date.date()
+                record.validity = difference.days
 
     def action_accept(self):
         for record in self:
             property = record.property_id
 
             for offer_id in property.offer_ids:
-                if offer_id.id != record.id and offer_id.status == 'accepted':
+                if offer_id.status == 'accepted':
                     raise exceptions.UserError('Cannot accept two different offers!')
 
             property.selling_price = record.price
             property.partner_id = record.partner_id
+            property.state = 'offer_accepted'
             record.status = 'accepted'
 
         return True
     
     def action_refuse(self):
         for record in self:
-            property = record.property_id
-
-            if record.status == 'accepted':
-                property.selling_price = None
-                property.partner_id = None
-                record.status = 'refused'
+            record.status = 'refused'
 
         return True
